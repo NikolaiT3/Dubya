@@ -135,7 +135,19 @@ exec (VarDecl str w) a
 exec (Assign str w) a = (str, (eval w a)) : a
 exec (Block []) a = a
 exec (Block (x:xs)) a = exec (Block xs) (exec x a)
-
+{-exec (If w1 s1 _) a
+                  | eval w1 a == VBool( True ) = exec s1 a
+                  | otherwise = a-}       -- throws warning: Pattern match(es) are overlapped
+                                          --                 In an equation for `exec': exec (If w1 s1 s2) a = ...
+exec (If w1 s1 s2) a
+                  | eval w1 a == VBool( True ) = exec s1 a
+                  | eval w1 a == VBool( False ) = exec s2 a
+exec (While w1 s1) a = do
+                      if (eval w1 a == VBool( True ))
+                        then do exec s1 a
+                                exec (While w1 s1) a
+                        else
+                          a
 -- example programs
 factorial = 
   Block
