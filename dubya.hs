@@ -142,12 +142,13 @@ exec (Block (x:xs)) a = exec (Block xs) (exec x a)
 exec (If w1 s1 s2) a
                   | eval w1 a == VBool( True ) = exec s1 a
                   | eval w1 a == VBool( False ) = exec s2 a
-exec (While w1 s1) a = do
-                      if (eval w1 a == VBool( True ))
-                        then do exec s1 a
-                                exec (While w1 s1) a
-                        else
-                          a
+                  
+exec (While w1 s1) a
+                  | eval w1 a == VBool( True ) = do
+                    exec s1 a
+                    exec (While w1 s1) a
+                  | eval w1 a == VBool( False ) = a
+                  
 -- example programs
 factorial = 
   Block
@@ -171,6 +172,105 @@ p1 = Block
          ( Block [ Assign "x" (Val (VInt 1)) ] )
          ( Block [ Assign "x" (Val (VInt 2)) ] )
      ]
+
+--addition
+mp1 = Plus (Val(VInt 16)) (Val(VInt 116))
+
+--subtraction
+mp2 = Minus (Val(VInt 116)) (Val(VInt 16))
+
+--multiplication
+mp3 = Multiplies (Val(VInt 16)) (Val(VInt 116))
+
+--division
+mp4 = Divides (Val(VInt 256)) (Val(VInt 16))
+
+--equal
+mp5 = Block
+      [
+        VarDecl "a" (Val (VInt 0)),
+        VarDecl "b" (Val (VInt 16)),
+        If (Equals (Var "a") (Var "b"))
+          ( Block [ Assign "a" (Val (VBool True)) ] )
+          ( Block [ Assign "a" (Val (VBool False)) ] )
+      ]
+
+--not equals
+mp6 = Block
+      [
+        VarDecl "c" (Val (VInt 0)),
+        VarDecl "d" (Val (VInt 16)),
+        If (NotEqual (Var "c") (Var "d"))
+          ( Block [ Assign "c" (Val (VBool True)) ] )
+          ( Block [ Assign "c" (Val (VBool False)) ] )
+      ]
+
+--greater than
+mp7 = Block
+      [
+        VarDecl "e" (Val (VInt 0)),
+        VarDecl "f" (Val( VInt 3)),
+        VarDecl "g" (Val( VInt 0)),
+        Block[ Assign "g" (Val (VInt 16)) ],
+        While ( Greater (Var "f") (Var "e"))
+        (
+          Block
+          [
+            If (Equals (Var "e") (Var "f"))
+              ( Block [ Assign "g" (Val (VBool True)) ] )
+              ( Block [ Assign "g" (Val (VBool False)) ] )
+            --Assign "g" (Plus (Var "f") (Val (VInt 1)) )
+          ]
+          --Block [ Assign "e" (Plus (Var "e") (Val (VInt 1)) ) ]
+        )
+      ]
+
+--greater than or equal to
+mp8 = Block
+      [
+      ]
+
+--less than
+mp9 = Block
+      [
+      ]
+
+--less than or equal to
+mp10 = Block
+      [
+      ]
+
+
+mp11 = Block
+      [
+      ]
+mp12 = Block
+      [
+      ]
+mp13 = Block
+      [
+      ]
+mp14 = Block
+      [
+      ]
+mp15 = Block
+      [
+      ]
+mp16 = Block
+      [
+      ]
+mp17 = Block
+      [
+      ]
+mp18 = Block
+      [
+      ]
+mp19 = Block
+      [
+      ]
+mp20 = Block
+      [
+      ]
 
 -- some useful helper functions
 lookup s [] = Nothing
