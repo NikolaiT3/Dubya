@@ -290,24 +290,30 @@ mp14 = Block
           )
           ( Block[ Assign "pow" (Val (VInt 0)) ] )
       ]
+
+-- Test VarDecl
 mp15 = Block
       [
+        VarDecl "abc" (Val (VInt 0)),
+        VarDecl "abc" (Val (VInt 1))
       ]
-mp16 = Block
-      [
-      ]
-mp17 = Block
-      [
-      ]
-mp18 = Block
-      [
-      ]
-mp19 = Block
-      [
-      ]
-mp20 = Block
-      [
-      ]
+
+fibonacci = Block
+          [
+            VarDecl "i" (Val (VInt 1)),
+            VarDecl "fib" (Val (VInt 1)),
+            VarDecl "t1" (Val (VInt 0)),
+            VarDecl "t2" (Val (VInt 1)),
+            While ( Less (Var "i") (Var "x"))
+            (
+              Block [
+                      Assign "fib" (Plus (Var "t1") (Var "t2")),
+                      Assign "t1" (Var "t2"),
+                      Assign "t2" (Var "fib"),
+                      Assign "i" (Plus (Var "i") (Val (VInt 1)))
+                    ]
+            )
+          ]
 
 -- some useful helper functions
 lookup s [] = Nothing
@@ -349,6 +355,7 @@ myTestList =
     , "17. Intentional Error looking for an int in 7. Equal" ~: asInt (fromJust (lookup "a" (exec mp5 []))) ~=? 0           -- This purposefully is an error. We're looking for an Int for a variable that was changed to a Bool
     , "18. Intentional Error looking for a Bool in 11. Less Than" ~: asBool (fromJust (lookup "i" (exec mp9 []))) ~=? True  -- This purposefully is an error. We're looking for a Bool for a variable that is a Int
     , "19. Intentional Error in fromJust on 8. Not Equal" ~: asBool (fromJust (lookup "z" (exec mp6 []))) ~=? True          -- This purposefully is an error. We're looking for a variable (z) that doesn't exist
+    , "21. Fibonacci" ~: asInt (fromJust (lookup "fib" (exec fibonacci [("x", VInt 4)]))) ~=? 3
     ]
 
 -- main: run the unit tests  
