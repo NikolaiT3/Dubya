@@ -131,8 +131,9 @@ exec :: WStmt -> Memory -> Memory
 exec Empty m = m
 exec (VarDecl str w) a 
                     | (lookup str a) == Nothing = (str, (eval w a)) : a
-                    | otherwise = error (str ++ "not Found")
-exec (Assign str w) a = (str, (eval w a)) : a
+                    | otherwise = error ("'" ++ str ++ "' already declared")
+exec (Assign str w) a | (lookup str a) == Nothing = error ("'" ++ str ++ "' not declared")
+                      | otherwise = (str, (eval w a)) : a
 exec (Block []) a = a
 exec (Block (x:xs)) a = exec (Block xs) (exec x a)
 {-exec (If w1 s1 _) a
@@ -298,6 +299,12 @@ mp15 = Block
         VarDecl "abc" (Val (VInt 1))
       ]
 
+-- Test Assign
+mp16 = Block
+      [
+        Assign "xyz" (Val (VInt 0))
+      ]
+
 fibonacci = Block
           [
             VarDecl "i" (Val (VInt 1)),
@@ -355,7 +362,8 @@ myTestList =
     , "17. Intentional Error looking for an int in 7. Equal" ~: asInt (fromJust (lookup "a" (exec mp5 []))) ~=? 0           -- This purposefully is an error. We're looking for an Int for a variable that was changed to a Bool
     , "18. Intentional Error looking for a Bool in 11. Less Than" ~: asBool (fromJust (lookup "i" (exec mp9 []))) ~=? True  -- This purposefully is an error. We're looking for a Bool for a variable that is a Int
     , "19. Intentional Error in fromJust on 8. Not Equal" ~: asBool (fromJust (lookup "z" (exec mp6 []))) ~=? True          -- This purposefully is an error. We're looking for a variable (z) that doesn't exist
-    , "21. Fibonacci" ~: asInt (fromJust (lookup "fib" (exec fibonacci [("x", VInt 4)]))) ~=? 3
+    , "21. Intentional Error in Assign" ~: asInt (fromJust (lookup "xyz" (exec mp16 []))) ~=? 0                             -- This purposefully is an error. We're assigning to a variable that hasn't been declared
+    , "22. Fibonacci" ~: asInt (fromJust (lookup "fib" (exec fibonacci [("x", VInt 4)]))) ~=? 3
     ]
 
 -- main: run the unit tests  
