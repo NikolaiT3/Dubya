@@ -205,7 +205,7 @@ mp6 = Block
 mp7 = Block
       [
         VarDecl "e" (Val (VInt 0)),
-        VarDecl "f" (Val( VInt 3)),
+        VarDecl "f" (Val (VInt 3)),
         While ( Greater (Var "f") (Var "e"))
         (
           Block [ Assign "e" (Plus (Var "e") (Val (VInt 1)) ) ]
@@ -215,30 +215,80 @@ mp7 = Block
 --greater than or equal to
 mp8 = Block
       [
+        VarDecl "g" (Val (VInt 1)),
+        VarDecl "h" (Val (VInt 16)),
+        While ( GreaterOrEqual (Var "h") (Var "g"))
+        (
+          Block [ Assign "g" (Multiplies (Var "g") (Val (VInt 2)) ) ]
+        )
       ]
 
 --less than
 mp9 = Block
       [
+        VarDecl "i" (Val (VInt 3)),
+        VarDecl "j" (Val (VInt 9)),
+        While ( Less (Var "i") (Var "j"))
+        (
+          Block [ Assign "i" (Multiplies (Var "i") (Val (VInt 4)) ) ]
+        )
       ]
 
 --less than or equal to
 mp10 = Block
       [
+        VarDecl "k" (Val (VInt 16)),
+        VarDecl "l" (Val (VInt 2)),
+        While ( LessOrEqual (Var "l") (Var "k"))
+        (
+          Block [ Assign "l" (Plus (Var "l") (Val (VInt 2)) ) ]
+        )
       ]
 
-
+--And False
 mp11 = Block
       [
+        VarDecl "m" (Val (VBool True)),
+        VarDecl "n" (Val (VBool False)),
+        If (And (Var "m") (Var "n"))
+          ( Block[ Assign "n" (Val (VBool True)) ] )
+          ( Block[ Assign "n" (Val (VBool False)) ] )
       ]
+
+--Or True
 mp12 = Block
       [
+        VarDecl "o" (Val (VBool True)),
+        VarDecl "p" (Val (VBool False)),
+        If (Or (Var "o") (Var "p"))
+          ( Block[ Assign "p" (Val (VBool True)) ] )
+          ( Block[ Assign "p" (Val (VBool False)) ] )
       ]
+
+--Not True
 mp13 = Block
       [
+        VarDecl "q" (Val (VBool False)),
+        If ( Not (Var "q"))
+          ( Block[ Assign "q" (Val (VBool True)) ] )
+          ( Block[ Assign "q" (Val (VBool False)) ] )
       ]
+
+--power 2
 mp14 = Block
       [
+        VarDecl "pow" (Val (VInt 2)),
+        If (NotEqual (Var "pow") (Val (VInt 0)))
+          (
+            Block
+            [
+              While ( Less (Var "pow") (Val (VInt 4)))
+              (
+                Block[ Assign "pow" (Multiplies (Var "pow") (Val (VInt 2))) ]
+              )
+            ]
+          )
+          ( Block[ Assign "pow" (Val (VInt 0)) ] )
       ]
 mp15 = Block
       [
@@ -275,13 +325,31 @@ fromJust Nothing = error "Expected a value in Maybe, but got Nothing"
 
 -- unit tests
 myTestList =
-
   TestList [
-    test $ assertEqual "p1 test" 2 (asInt (fromJust (lookup "x" (exec p1 [])))),
+    test $ assertEqual "1. p1 test" 2 (asInt (fromJust (lookup "x" (exec p1 [])))),
 
     let res = lookup "acc" (exec factorial [("x", VInt 10)])
-    in test $ assertBool "factorial of 10" (3628800 == asInt (fromJust res))
-    ]    
+    in test $ assertBool "2. factorial of 10" (3628800 == asInt (fromJust res))
+
+    , "3. Addition" ~: asInt(eval mp1 []) ~=? 132
+    , "4. Subtraction" ~: asInt(eval mp2 []) ~=? 100
+    , "5. Multiplication" ~: asInt(eval mp3 []) ~=? 1856
+    , "6. Division" ~: asInt(eval mp4 []) ~=? 16
+
+    , "7. Equal" ~: asBool (fromJust (lookup "a" (exec mp5 []))) ~=? False
+    , "8. Not Equal" ~: asBool (fromJust (lookup "c" (exec mp6 []))) ~=? True
+    , "9. Greater Than" ~: asInt (fromJust (lookup "e" (exec mp7 []))) ~=? 3
+    , "10. Greater Than or Equal To" ~: asInt (fromJust (lookup "g" (exec mp8 []))) ~=? 32
+    , "11. Less Than" ~: asInt (fromJust (lookup "i" (exec mp9 []))) ~=? 12
+    , "12. Less Than or Equal To" ~: asInt (fromJust (lookup "l" (exec mp10 []))) ~=? 18
+    , "13. And" ~: asBool (fromJust (lookup "n" (exec mp11 []))) ~=? False
+    , "14. Or" ~: asBool (fromJust (lookup "p" (exec mp12 []))) ~=? True
+    , "15. Not" ~: asBool (fromJust (lookup "q" (exec mp13 []))) ~=? True
+    , "16. Power 2" ~: asInt (fromJust (lookup "pow" (exec mp14 []))) ~=? 4
+    , "17. Intentional Error looking for an int in 7. Equal" ~: asInt (fromJust (lookup "a" (exec mp5 []))) ~=? 0           -- This purposefully is an error. We're looking for an Int for a variable that was changed to a Bool
+    , "18. Intentional Error looking for a Bool in 11. Less Than" ~: asBool (fromJust (lookup "i" (exec mp9 []))) ~=? True  -- This purposefully is an error. We're looking for a Bool for a variable that is a Int
+    , "19. Intentional Error in fromJust on 8. Not Equal" ~: asBool (fromJust (lookup "z" (exec mp6 []))) ~=? True          -- This purposefully is an error. We're looking for a variable (z) that doesn't exist
+    ]
 
 -- main: run the unit tests  
 main = do c <- runTestTT myTestList
