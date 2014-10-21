@@ -143,11 +143,7 @@ exec (If w1 s1 s2) a
                   | eval w1 a == VBool( True ) = exec s1 a
                   | eval w1 a == VBool( False ) = exec s2 a
                   
-exec (While w1 s1) a
-                  | eval w1 a == VBool( True ) = do
-                    exec s1 a
-                    exec (While w1 s1) a
-                  | eval w1 a == VBool( False ) = a
+exec (While w1 s1) a = if ( eval w1 a == VBool( True ) ) then exec (While w1 s1) (exec s1 a) else a
                   
 -- example programs
 factorial = 
@@ -210,18 +206,9 @@ mp7 = Block
       [
         VarDecl "e" (Val (VInt 0)),
         VarDecl "f" (Val( VInt 3)),
-        VarDecl "g" (Val( VInt 0)),
-        Block[ Assign "g" (Val (VInt 16)) ],
         While ( Greater (Var "f") (Var "e"))
         (
-          Block
-          [
-            If (Equals (Var "e") (Var "f"))
-              ( Block [ Assign "g" (Val (VBool True)) ] )
-              ( Block [ Assign "g" (Val (VBool False)) ] )
-            --Assign "g" (Plus (Var "f") (Val (VInt 1)) )
-          ]
-          --Block [ Assign "e" (Plus (Var "e") (Val (VInt 1)) ) ]
+          Block [ Assign "e" (Plus (Var "e") (Val (VInt 1)) ) ]
         )
       ]
 
